@@ -2,6 +2,7 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { Pencil, Plus } from "lucide-react";
+import Link from "next/link";
 import { useState } from "react";
 
 import { GoalForm } from "@/components/GoalForm";
@@ -52,7 +53,9 @@ export default function GoalsPage() {
                 className="size-3 shrink-0 rounded-full"
                 style={{ backgroundColor: goal.color }}
               />
-              <span className="flex-1 font-medium">{goal.title}</span>
+              <Link className="flex-1 font-medium hover:underline" href={`/goals/${goal.id}`}>
+                {goal.title}
+              </Link>
               <span className="text-sm text-muted-foreground">
                 {goal.weekly_min_minutes} min/week
               </span>

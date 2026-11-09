@@ -10,6 +10,40 @@ export type Goal = {
 
 export type GoalFields = Omit<Goal, "id" | "archived">;
 
+export type NodeStatus = "locked" | "open" | "in_progress" | "done" | "abandoned";
+
+export type GoalNode = {
+  id: string;
+  slug: string;
+  goal_id: string;
+  parent_id: string | null;
+  title: string;
+  description: string;
+  done_criteria: string;
+  optional: boolean;
+  score: number;
+  required_open_score: number | null;
+  est_minutes: number;
+  focus: "low" | "medium" | "deep";
+  tags: string[];
+  status: NodeStatus;
+  abandon_count: number;
+};
+
+// prerequisite_node_id must be done before node_id can open.
+export type Prerequisite = {
+  id: string;
+  node_id: string;
+  prerequisite_node_id: string;
+};
+
+// Prerequisites include links to and from nodes in other goals.
+export type GoalTree = {
+  goal: Goal;
+  nodes: GoalNode[];
+  prerequisites: Prerequisite[];
+};
+
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 if (!API_URL) {
   throw new Error("NEXT_PUBLIC_API_URL is not set");
@@ -51,4 +85,12 @@ export function updateGoal(goalId: string, changes: Partial<Omit<Goal, "id">>): 
 
 export function deleteGoal(goalId: string): Promise<void> {
   return request(`/goals/${goalId}`, "DELETE");
+}
+
+export function getGoalTree(goalId: string): Promise<GoalTree> {
+  return request(`/goals/${goalId}/tree`);
+}
+
+export function listNodes(): Promise<GoalNode[]> {
+  return request("/nodes");
 }
