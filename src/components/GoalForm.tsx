@@ -3,24 +3,13 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { DialogFooter } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { createGoal, deleteGoal, Goal, updateGoal } from "@/lib/api";
+import { createGoal, Goal, updateGoal } from "@/lib/api";
 
 // With a goal it edits that goal; without one it creates a new goal.
 export function GoalForm({ goal, onClose }: { goal?: Goal; onClose: () => void }) {
@@ -32,10 +21,6 @@ export function GoalForm({ goal, onClose }: { goal?: Goal; onClose: () => void }
   const [archived, setArchived] = useState(goal?.archived ?? false);
 
   const queryClient = useQueryClient();
-  function refreshGoalsAndClose() {
-    queryClient.invalidateQueries({ queryKey: ["goals"] });
-    onClose();
-  }
 
   const save = useMutation({
     mutationFn: () => {
@@ -48,15 +33,11 @@ export function GoalForm({ goal, onClose }: { goal?: Goal; onClose: () => void }
       };
       return goal ? updateGoal(goal.id, { ...fields, archived }) : createGoal(fields);
     },
-    onSuccess: refreshGoalsAndClose,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["goals"] });
+      onClose();
+    },
   });
-
-  const remove = useMutation({
-    mutationFn: (goalId: string) => deleteGoal(goalId),
-    onSuccess: refreshGoalsAndClose,
-  });
-
-  const errorMessage = save.error?.message ?? remove.error?.message;
 
   return (
     <form
@@ -132,33 +113,9 @@ export function GoalForm({ goal, onClose }: { goal?: Goal; onClose: () => void }
         </div>
       )}
 
-      {errorMessage && <p className="text-sm text-destructive">{errorMessage}</p>}
+      {save.error && <p className="text-sm text-destructive">{save.error.message}</p>}
 
       <DialogFooter>
-        {goal && (
-          <AlertDialog>
-            <AlertDialogTrigger asChild>
-              <Button className="mr-auto" type="button" variant="destructive">
-                Delete
-              </Button>
-            </AlertDialogTrigger>
-            <AlertDialogContent>
-              <AlertDialogHeader>
-                <AlertDialogTitle>Delete this goal?</AlertDialogTitle>
-                <AlertDialogDescription>
-                  &ldquo;{goal.title}&rdquo; and all of its nodes will be removed. This can&apos;t
-                  be undone.
-                </AlertDialogDescription>
-              </AlertDialogHeader>
-              <AlertDialogFooter>
-                <AlertDialogCancel>Keep goal</AlertDialogCancel>
-                <AlertDialogAction variant="destructive" onClick={() => remove.mutate(goal.id)}>
-                  Delete goal
-                </AlertDialogAction>
-              </AlertDialogFooter>
-            </AlertDialogContent>
-          </AlertDialog>
-        )}
         <Button type="button" variant="outline" onClick={onClose}>
           Cancel
         </Button>
