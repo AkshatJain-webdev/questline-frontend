@@ -18,12 +18,12 @@ import { useTheme } from "next-themes";
 import { Goal, GoalNode, GoalTree, NodeStatus } from "@/lib/api";
 import { COLUMN_WIDTH, layoutTree, ROW_HEIGHT } from "@/lib/treeLayout";
 
-const STATUS_CLASSES: Record<NodeStatus, string> = {
-  locked: "border-status-locked bg-status-locked/10",
-  open: "border-status-open bg-status-open/10",
-  in_progress: "border-status-in-progress bg-status-in-progress/10",
-  done: "border-status-done bg-status-done/10",
-  abandoned: "border-status-locked bg-status-locked/10",
+const STATUS_COLORS: Record<NodeStatus, string> = {
+  locked: "var(--status-locked)",
+  open: "var(--status-open)",
+  in_progress: "var(--status-in-progress)",
+  done: "var(--status-done)",
+  abandoned: "var(--status-locked)",
 };
 
 type TreeBoxData = {
@@ -33,6 +33,7 @@ type TreeBoxData = {
   optional: boolean;
   // Only set on rollups, e.g. "2 of 3".
   rollupProgress: string | null;
+  isSelected: boolean;
 };
 
 type OtherGoalBoxData = { goalTitle: string; title: string };
@@ -50,10 +51,12 @@ function BoxHandles() {
 function TreeBox({ data }: NodeProps<FlowNode<TreeBoxData, "treeBox">>) {
   const shapeClasses = data.rollupProgress ? "rounded-full px-5" : "rounded-lg px-3";
   const outlineClasses = data.optional ? "border-dashed" : "border-solid";
+  const selectedClasses = data.isSelected ? "ring-2 ring-primary ring-offset-2" : "";
 
   return (
     <div
-      className={`w-60 border-2 py-2 text-card-foreground ${shapeClasses} ${outlineClasses} ${STATUS_CLASSES[data.status]}`}
+      className={`w-60 cursor-pointer border-2 border-(--status) bg-(--status)/10 py-2 ring-offset-background ${shapeClasses} ${outlineClasses} ${selectedClasses}`}
+      style={{ "--status": STATUS_COLORS[data.status] } as React.CSSProperties}
     >
       <BoxHandles />
       <div className="truncate text-sm font-medium">{data.title}</div>
@@ -98,7 +101,12 @@ function prerequisiteLineHandles(sourceColumn: number, targetColumn: number) {
   return { sourceHandle: "left", targetHandle: "right" };
 }
 
-function buildFlowElements(tree: GoalTree, allNodes: GoalNode[], goals: Goal[]) {
+function buildFlowElements(
+  tree: GoalTree,
+  allNodes: GoalNode[],
+  goals: Goal[],
+  selectedNodeId: string | null,
+) {
   const nodesById = new Map(allNodes.map((node) => [node.id, node]));
   const goalTitlesById = new Map(goals.map((goal) => [goal.id, goal.title]));
   const positions = layoutTree(tree.nodes);
@@ -114,6 +122,7 @@ function buildFlowElements(tree: GoalTree, allNodes: GoalNode[], goals: Goal[]) 
       estMinutes: node.est_minutes,
       optional: node.optional,
       rollupProgress: isRollup(node, tree.nodes) ? rollupProgress(node, tree, nodesById) : null,
+      isSelected: node.id === selectedNodeId,
     },
   }));
 
@@ -173,13 +182,17 @@ export function GoalTreeView({
   tree,
   allNodes,
   goals,
+  selectedNodeId,
+  onSelectNode,
 }: {
   tree: GoalTree;
   allNodes: GoalNode[];
   goals: Goal[];
+  selectedNodeId: string | null;
+  onSelectNode: (nodeId: string) => void;
 }) {
   const { resolvedTheme } = useTheme();
-  const { flowNodes, flowEdges } = buildFlowElements(tree, allNodes, goals);
+  const { flowNodes, flowEdges } = buildFlowElements(tree, allNodes, goals, selectedNodeId);
 
   return (
     <ReactFlow
@@ -191,6 +204,9 @@ export function GoalTreeView({
       nodesConnectable={false}
       elementsSelectable={false}
       connectionMode={ConnectionMode.Loose}
+      onNodeClick={(_event, flowNode) => {
+        if (flowNode.type === "treeBox") onSelectNode(flowNode.id);
+      }}
       fitView
       fitViewOptions={{ maxZoom: 1 }}
     >

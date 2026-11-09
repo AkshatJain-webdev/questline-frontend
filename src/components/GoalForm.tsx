@@ -3,6 +3,8 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 
+import { ErrorText } from "@/components/ErrorText";
+import { FormField } from "@/components/FormField";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { DialogFooter } from "@/components/ui/dialog";
@@ -47,29 +49,26 @@ export function GoalForm({ goal, onClose }: { goal?: Goal; onClose: () => void }
         save.mutate();
       }}
     >
-      <div className="space-y-2">
-        <Label htmlFor="goal-title">Title</Label>
+      <FormField id="goal-title" label="Title">
         <Input
           id="goal-title"
           required
           value={title}
           onChange={(event) => setTitle(event.target.value)}
         />
-      </div>
+      </FormField>
 
-      <div className="space-y-2">
-        <Label htmlFor="goal-description">Description</Label>
+      <FormField id="goal-description" label="Description">
         <Textarea
           id="goal-description"
           rows={2}
           value={description}
           onChange={(event) => setDescription(event.target.value)}
         />
-      </div>
+      </FormField>
 
       <div className="grid grid-cols-[auto_1fr_1fr] gap-4">
-        <div className="space-y-2">
-          <Label htmlFor="goal-color">Colour</Label>
+        <FormField id="goal-color" label="Colour">
           <Input
             id="goal-color"
             className="w-14 cursor-pointer p-1"
@@ -77,10 +76,9 @@ export function GoalForm({ goal, onClose }: { goal?: Goal; onClose: () => void }
             value={color}
             onChange={(event) => setColor(event.target.value)}
           />
-        </div>
+        </FormField>
 
-        <div className="space-y-2">
-          <Label htmlFor="goal-weekly-minutes">Minutes per week</Label>
+        <FormField id="goal-weekly-minutes" label="Minutes per week">
           <Input
             id="goal-weekly-minutes"
             type="number"
@@ -89,17 +87,16 @@ export function GoalForm({ goal, onClose }: { goal?: Goal; onClose: () => void }
             value={weeklyMinutes}
             onChange={(event) => setWeeklyMinutes(event.target.value)}
           />
-        </div>
+        </FormField>
 
-        <div className="space-y-2">
-          <Label htmlFor="goal-target-date">Target date</Label>
+        <FormField id="goal-target-date" label="Target date">
           <Input
             id="goal-target-date"
             type="date"
             value={targetDate}
             onChange={(event) => setTargetDate(event.target.value)}
           />
-        </div>
+        </FormField>
       </div>
 
       {goal && (
@@ -113,7 +110,7 @@ export function GoalForm({ goal, onClose }: { goal?: Goal; onClose: () => void }
         </div>
       )}
 
-      {save.error && <p className="text-sm text-destructive">{save.error.message}</p>}
+      <ErrorText message={save.error?.message} />
 
       <DialogFooter>
         <Button type="button" variant="outline" onClick={onClose}>

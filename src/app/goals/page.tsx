@@ -5,6 +5,8 @@ import { Pencil, Plus, Trash2 } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 
+import { ErrorText } from "@/components/ErrorText";
+import { GoalColorDot } from "@/components/GoalColorDot";
 import { GoalForm } from "@/components/GoalForm";
 import {
   AlertDialog,
@@ -83,10 +85,7 @@ export default function GoalsPage() {
                 goal.archived ? "opacity-50" : ""
               }`}
             >
-              <span
-                className="size-3 shrink-0 rounded-full"
-                style={{ backgroundColor: goal.color }}
-              />
+              <GoalColorDot color={goal.color} />
               {/* The ::after layer stretches this link over the whole card. */}
               <Link
                 className="flex-1 font-medium after:absolute after:inset-0"
@@ -149,9 +148,7 @@ export default function GoalsPage() {
               can&apos;t be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
-          {removeGoal.error && (
-            <p className="text-sm text-destructive">{removeGoal.error.message}</p>
-          )}
+          <ErrorText message={removeGoal.error?.message} />
           <AlertDialogFooter>
             <AlertDialogCancel>Keep goal</AlertDialogCancel>
             <AlertDialogAction

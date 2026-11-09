@@ -30,6 +30,21 @@ export type GoalNode = {
   abandon_count: number;
 };
 
+export type NodeChanges = Partial<
+  Pick<
+    GoalNode,
+    | "title"
+    | "description"
+    | "done_criteria"
+    | "parent_id"
+    | "optional"
+    | "score"
+    | "est_minutes"
+    | "focus"
+    | "tags"
+  >
+>;
+
 // prerequisite_node_id must be done before node_id can open.
 export type Prerequisite = {
   id: string;
@@ -93,4 +108,16 @@ export function getGoalTree(goalId: string): Promise<GoalTree> {
 
 export function listNodes(): Promise<GoalNode[]> {
   return request("/nodes");
+}
+
+export function updateNode(nodeId: string, changes: NodeChanges): Promise<GoalNode> {
+  return request(`/nodes/${nodeId}`, "PATCH", changes);
+}
+
+export function completeNode(nodeId: string): Promise<GoalNode> {
+  return request(`/nodes/${nodeId}/complete`, "POST");
+}
+
+export function deleteNode(nodeId: string): Promise<void> {
+  return request(`/nodes/${nodeId}`, "DELETE");
 }
