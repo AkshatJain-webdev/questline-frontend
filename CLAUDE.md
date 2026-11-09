@@ -14,4 +14,5 @@ Next.js frontend for Questline, a personal goal tracker built as skill trees. Th
 - One milestone at a time, scoped by `TASK.md` before implementation starts.
 - Each implementation slice is one commit, and the app runs at every commit.
 - **No tests.** Don't write tests or add test tooling to this repo. Verify changes by running the app.
+- pnpm is the package manager (`pnpm add`, `pnpm dev`); do not use npm or Yarn here.
 - Next.js 16 differs from older versions; check `node_modules/next/dist/docs/` before relying on an API.
