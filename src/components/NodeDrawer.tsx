@@ -5,6 +5,7 @@ import { useState } from "react";
 
 import { ErrorText } from "@/components/ErrorText";
 import { NodeForm, NodeFormValues } from "@/components/NodeForm";
+import { PrerequisiteSection } from "@/components/PrerequisiteSection";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -24,7 +25,15 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
-import { completeNode, deleteNode, GoalNode, NodeChanges, updateNode } from "@/lib/api";
+import {
+  completeNode,
+  deleteNode,
+  Goal,
+  GoalNode,
+  NodeChanges,
+  Prerequisite,
+  updateNode,
+} from "@/lib/api";
 
 // Save sends only what the user actually changed.
 function changedFields(node: GoalNode, values: NodeFormValues): NodeChanges {
@@ -44,11 +53,17 @@ function changedFields(node: GoalNode, values: NodeFormValues): NodeChanges {
 export function NodeDrawer({
   node,
   treeNodes,
+  prerequisites,
+  allNodes,
+  goals,
   onAddChild,
   onClose,
 }: {
   node: GoalNode | undefined;
   treeNodes: GoalNode[];
+  prerequisites: Prerequisite[];
+  allNodes: GoalNode[];
+  goals: Goal[];
   onAddChild: (parentId: string) => void;
   onClose: () => void;
 }) {
@@ -66,6 +81,9 @@ export function NodeDrawer({
             key={node.id}
             node={node}
             treeNodes={treeNodes}
+            prerequisites={prerequisites}
+            allNodes={allNodes}
+            goals={goals}
             onAddChild={onAddChild}
             onClose={onClose}
           />
@@ -78,11 +96,17 @@ export function NodeDrawer({
 function NodeDrawerBody({
   node,
   treeNodes,
+  prerequisites,
+  allNodes,
+  goals,
   onAddChild,
   onClose,
 }: {
   node: GoalNode;
   treeNodes: GoalNode[];
+  prerequisites: Prerequisite[];
+  allNodes: GoalNode[];
+  goals: Goal[];
   onAddChild: (parentId: string) => void;
   onClose: () => void;
 }) {
@@ -126,6 +150,13 @@ function NodeDrawerBody({
           errorMessage={save.error?.message}
           onSubmit={(values) => save.mutate(changedFields(node, values))}
           onCancel={onClose}
+        />
+
+        <PrerequisiteSection
+          node={node}
+          prerequisites={prerequisites}
+          allNodes={allNodes}
+          goals={goals}
         />
 
         <div className="space-y-2 border-t pt-4">

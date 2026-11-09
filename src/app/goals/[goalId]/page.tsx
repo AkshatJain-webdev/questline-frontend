@@ -86,6 +86,9 @@ export default function GoalTreePage() {
       <NodeDrawer
         node={selectedNode}
         treeNodes={tree.data?.nodes ?? []}
+        prerequisites={tree.data?.prerequisites ?? []}
+        allNodes={allNodes.data ?? []}
+        goals={goals.data ?? []}
         onAddChild={startAddingNode}
         onClose={() => setSelectedNodeId(null)}
       />

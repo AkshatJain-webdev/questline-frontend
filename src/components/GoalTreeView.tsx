@@ -16,15 +16,8 @@ import "@xyflow/react/dist/style.css";
 import { useTheme } from "next-themes";
 
 import { Goal, GoalNode, GoalTree, NodeStatus } from "@/lib/api";
+import { STATUS_COLORS } from "@/lib/statusColors";
 import { COLUMN_WIDTH, layoutTree, ROW_HEIGHT } from "@/lib/treeLayout";
-
-const STATUS_COLORS: Record<NodeStatus, string> = {
-  locked: "var(--status-locked)",
-  open: "var(--status-open)",
-  in_progress: "var(--status-in-progress)",
-  done: "var(--status-done)",
-  abandoned: "var(--status-locked)",
-};
 
 type TreeBoxData = {
   title: string;

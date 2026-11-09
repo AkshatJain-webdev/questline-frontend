@@ -57,6 +57,7 @@ export type NodeChanges = Partial<
     | "est_minutes"
     | "focus"
     | "tags"
+    | "required_open_score"
   >
 >;
 
@@ -139,4 +140,18 @@ export function completeNode(nodeId: string): Promise<GoalNode> {
 
 export function deleteNode(nodeId: string): Promise<void> {
   return request(`/nodes/${nodeId}`, "DELETE");
+}
+
+export function addPrerequisite(nodeId: string, prerequisiteNodeId: string): Promise<Prerequisite> {
+  return request("/prerequisites", "POST", {
+    node_id: nodeId,
+    prerequisite_node_id: prerequisiteNodeId,
+  });
+}
+
+export function removePrerequisite(nodeId: string, prerequisiteNodeId: string): Promise<void> {
+  return request(
+    `/prerequisites?node_id=${nodeId}&prerequisite_node_id=${prerequisiteNodeId}`,
+    "DELETE",
+  );
 }
