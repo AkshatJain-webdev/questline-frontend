@@ -31,7 +31,7 @@ export default function GoalsPage() {
   );
 
   return (
-    <main className="mx-auto max-w-3xl p-6">
+    <div className="mx-auto w-full max-w-3xl p-6">
       <div className="mb-6 flex items-center justify-between">
         <h1 className="text-2xl font-semibold">Goals</h1>
         <Button onClick={() => openForm()}>
@@ -81,6 +81,6 @@ export default function GoalsPage() {
           <GoalForm goal={editingGoal} onClose={() => setIsFormOpen(false)} />
         </DialogContent>
       </Dialog>
-    </main>
+    </div>
   );
 }

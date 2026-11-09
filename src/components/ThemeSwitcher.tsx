@@ -22,16 +22,18 @@ export function ThemeSwitcher() {
   const { resolvedTheme, setTheme } = useTheme();
 
   return (
-    <div className="flex items-center gap-3">
-      {COLOR_THEMES.map((colorTheme) => (
-        <button
-          key={colorTheme.name}
-          type="button"
-          aria-label={`Use the ${colorTheme.name} colour theme`}
-          className={`size-4 cursor-pointer rounded-full ring-foreground ring-offset-2 ring-offset-background ${colorTheme.swatchClasses}`}
-          onClick={() => applyColorTheme(colorTheme.name)}
-        />
-      ))}
+    <div className="flex items-center justify-between">
+      <div className="flex items-center gap-3 px-1 group-data-[collapsible=icon]:hidden">
+        {COLOR_THEMES.map((colorTheme) => (
+          <button
+            key={colorTheme.name}
+            type="button"
+            aria-label={`Use the ${colorTheme.name} colour theme`}
+            className={`size-4 cursor-pointer rounded-full ring-foreground ring-offset-2 ring-offset-sidebar ${colorTheme.swatchClasses}`}
+            onClick={() => applyColorTheme(colorTheme.name)}
+          />
+        ))}
+      </div>
       <Button
         variant="ghost"
         size="icon"

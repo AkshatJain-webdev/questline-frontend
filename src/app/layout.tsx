@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
 import { Geist } from "next/font/google";
 
+import { AppSidebar } from "@/components/AppSidebar";
 import { Providers } from "@/components/Providers";
-import { ThemeSwitcher } from "@/components/ThemeSwitcher";
+import { SidebarInset, SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { cn } from "@/lib/utils";
 import "./globals.css";
 
@@ -31,13 +32,15 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       </head>
       <body className="min-h-screen bg-background text-foreground">
         <Providers>
-          <header className="border-b">
-            <div className="mx-auto flex h-14 max-w-3xl items-center justify-between px-6">
-              <span className="font-semibold">Questline</span>
-              <ThemeSwitcher />
-            </div>
-          </header>
-          {children}
+          <SidebarProvider>
+            <AppSidebar />
+            <SidebarInset>
+              <header className="flex h-12 items-center border-b px-3">
+                <SidebarTrigger />
+              </header>
+              {children}
+            </SidebarInset>
+          </SidebarProvider>
         </Providers>
       </body>
     </html>
