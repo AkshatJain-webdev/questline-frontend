@@ -3,9 +3,24 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
+import { DialogFooter } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { createGoal, deleteGoal, Goal, updateGoal } from "@/lib/api";
-
-const INPUT_CLASSES = "w-full rounded border border-zinc-300 px-2 py-1";
 
 // With a goal it edits that goal; without one it creates a new goal.
 export function GoalForm({ goal, onClose }: { goal?: Goal; onClose: () => void }) {
@@ -41,111 +56,116 @@ export function GoalForm({ goal, onClose }: { goal?: Goal; onClose: () => void }
     onSuccess: refreshGoalsAndClose,
   });
 
-  function confirmAndDelete(goalToDelete: Goal) {
-    if (window.confirm(`Delete "${goalToDelete.title}" and all of its nodes?`)) {
-      remove.mutate(goalToDelete.id);
-    }
-  }
-
   const errorMessage = save.error?.message ?? remove.error?.message;
 
   return (
     <form
-      className="space-y-3 rounded-lg border border-zinc-300 bg-white p-4"
+      className="space-y-4"
       onSubmit={(event) => {
         event.preventDefault();
         save.mutate();
       }}
     >
-      <label className="block text-sm">
-        Title
-        <input
-          className={INPUT_CLASSES}
+      <div className="space-y-2">
+        <Label htmlFor="goal-title">Title</Label>
+        <Input
+          id="goal-title"
           required
           value={title}
           onChange={(event) => setTitle(event.target.value)}
         />
-      </label>
+      </div>
 
-      <label className="block text-sm">
-        Description
-        <textarea
-          className={INPUT_CLASSES}
+      <div className="space-y-2">
+        <Label htmlFor="goal-description">Description</Label>
+        <Textarea
+          id="goal-description"
           rows={2}
           value={description}
           onChange={(event) => setDescription(event.target.value)}
         />
-      </label>
+      </div>
 
-      <div className="flex flex-wrap gap-4">
-        <label className="text-sm">
-          Colour
-          <input
-            className="block h-8 w-16"
+      <div className="grid grid-cols-[auto_1fr_1fr] gap-4">
+        <div className="space-y-2">
+          <Label htmlFor="goal-color">Colour</Label>
+          <Input
+            id="goal-color"
+            className="w-14 cursor-pointer p-1"
             type="color"
             value={color}
             onChange={(event) => setColor(event.target.value)}
           />
-        </label>
+        </div>
 
-        <label className="text-sm">
-          Weekly minimum (minutes)
-          <input
-            className={INPUT_CLASSES}
+        <div className="space-y-2">
+          <Label htmlFor="goal-weekly-minutes">Minutes per week</Label>
+          <Input
+            id="goal-weekly-minutes"
             type="number"
             min={0}
             required
             value={weeklyMinutes}
             onChange={(event) => setWeeklyMinutes(event.target.value)}
           />
-        </label>
+        </div>
 
-        <label className="text-sm">
-          Target date
-          <input
-            className={INPUT_CLASSES}
+        <div className="space-y-2">
+          <Label htmlFor="goal-target-date">Target date</Label>
+          <Input
+            id="goal-target-date"
             type="date"
             value={targetDate}
             onChange={(event) => setTargetDate(event.target.value)}
           />
-        </label>
+        </div>
       </div>
 
       {goal && (
-        <label className="flex items-center gap-2 text-sm">
-          <input
-            type="checkbox"
+        <div className="flex items-center gap-2">
+          <Checkbox
+            id="goal-archived"
             checked={archived}
-            onChange={(event) => setArchived(event.target.checked)}
+            onCheckedChange={(checked) => setArchived(checked === true)}
           />
-          Archived
-        </label>
+          <Label htmlFor="goal-archived">Archived</Label>
+        </div>
       )}
 
-      {errorMessage && <p className="text-sm text-red-600">{errorMessage}</p>}
+      {errorMessage && <p className="text-sm text-destructive">{errorMessage}</p>}
 
-      <div className="flex gap-2">
-        <button
-          className="rounded bg-zinc-900 px-3 py-1 text-sm text-white disabled:opacity-50"
-          type="submit"
-          disabled={save.isPending}
-        >
-          Save
-        </button>
-        <button className="rounded px-3 py-1 text-sm" type="button" onClick={onClose}>
-          Cancel
-        </button>
+      <DialogFooter>
         {goal && (
-          <button
-            className="ml-auto rounded px-3 py-1 text-sm text-red-600"
-            type="button"
-            disabled={remove.isPending}
-            onClick={() => confirmAndDelete(goal)}
-          >
-            Delete
-          </button>
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button className="mr-auto" type="button" variant="destructive">
+                Delete
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Delete this goal?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  &ldquo;{goal.title}&rdquo; and all of its nodes will be removed. This can&apos;t
+                  be undone.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Keep goal</AlertDialogCancel>
+                <AlertDialogAction variant="destructive" onClick={() => remove.mutate(goal.id)}>
+                  Delete goal
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
         )}
-      </div>
+        <Button type="button" variant="outline" onClick={onClose}>
+          Cancel
+        </Button>
+        <Button type="submit" disabled={save.isPending}>
+          Save
+        </Button>
+      </DialogFooter>
     </form>
   );
 }

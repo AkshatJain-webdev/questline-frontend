@@ -8,6 +8,8 @@ Next.js frontend for Questline, a personal goal tracker built as skill trees. Th
 - **No Next.js API routes or server actions.** FastAPI owns all data and logic, and may be deployed separately from this app.
 - **Every API call and response type lives in `src/lib/api.ts`.** Components never call `fetch` directly. The browser calls the backend at `NEXT_PUBLIC_API_URL`, set locally in a git-ignored `.env.local` (`http://localhost:8000`) and read nowhere else.
 - **Show the backend's `detail` message** when a request fails, next to whatever caused it.
+- **UI is built from shadcn components in `src/components/ui`**, added with `pnpm dlx shadcn@latest add <name>`.
+- **Colours come from theme variables** (`bg-primary`, `text-muted-foreground`), never fixed colours, so light/dark mode and the colour themes keep working. A goal's own colour from the API is the exception.
 
 ## Working style
 
