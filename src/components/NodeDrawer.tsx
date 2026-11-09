@@ -4,7 +4,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 
 import { ErrorText } from "@/components/ErrorText";
-import { NodeForm } from "@/components/NodeForm";
+import { NodeForm, NodeFormValues } from "@/components/NodeForm";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -26,13 +26,30 @@ import {
 } from "@/components/ui/sheet";
 import { completeNode, deleteNode, GoalNode, NodeChanges, updateNode } from "@/lib/api";
 
+// Save sends only what the user actually changed.
+function changedFields(node: GoalNode, values: NodeFormValues): NodeChanges {
+  const changes: NodeChanges = {};
+  if (values.title !== node.title) changes.title = values.title;
+  if (values.description !== node.description) changes.description = values.description;
+  if (values.done_criteria !== node.done_criteria) changes.done_criteria = values.done_criteria;
+  if (values.parent_id !== node.parent_id) changes.parent_id = values.parent_id;
+  if (values.optional !== node.optional) changes.optional = values.optional;
+  if (values.score !== node.score) changes.score = values.score;
+  if (values.est_minutes !== node.est_minutes) changes.est_minutes = values.est_minutes;
+  if (values.focus !== node.focus) changes.focus = values.focus;
+  if (values.tags.join(",") !== node.tags.join(",")) changes.tags = values.tags;
+  return changes;
+}
+
 export function NodeDrawer({
   node,
   treeNodes,
+  onAddChild,
   onClose,
 }: {
   node: GoalNode | undefined;
   treeNodes: GoalNode[];
+  onAddChild: (parentId: string) => void;
   onClose: () => void;
 }) {
   return (
@@ -44,7 +61,15 @@ export function NodeDrawer({
     >
       <SheetContent className="w-full overflow-y-auto sm:max-w-md">
         {/* Keyed so the form and its errors start fresh for each node. */}
-        {node && <NodeDrawerBody key={node.id} node={node} treeNodes={treeNodes} onClose={onClose} />}
+        {node && (
+          <NodeDrawerBody
+            key={node.id}
+            node={node}
+            treeNodes={treeNodes}
+            onAddChild={onAddChild}
+            onClose={onClose}
+          />
+        )}
       </SheetContent>
     </Sheet>
   );
@@ -53,10 +78,12 @@ export function NodeDrawer({
 function NodeDrawerBody({
   node,
   treeNodes,
+  onAddChild,
   onClose,
 }: {
   node: GoalNode;
   treeNodes: GoalNode[];
+  onAddChild: (parentId: string) => void;
   onClose: () => void;
 }) {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
@@ -97,7 +124,7 @@ function NodeDrawerBody({
           treeNodes={treeNodes}
           isSaving={save.isPending}
           errorMessage={save.error?.message}
-          onSave={(changes) => save.mutate(changes)}
+          onSubmit={(values) => save.mutate(changedFields(node, values))}
           onCancel={onClose}
         />
 
@@ -133,11 +160,16 @@ function NodeDrawerBody({
               </AlertDialogContent>
             </AlertDialog>
 
-            {node.status === "open" && (
-              <Button disabled={markDone.isPending} onClick={() => markDone.mutate()}>
-                Mark done
+            <div className="flex gap-2">
+              <Button variant="outline" onClick={() => onAddChild(node.id)}>
+                Add child
               </Button>
-            )}
+              {node.status === "open" && (
+                <Button disabled={markDone.isPending} onClick={() => markDone.mutate()}>
+                  Mark done
+                </Button>
+              )}
+            </div>
           </div>
         </div>
       </div>

@@ -30,6 +30,21 @@ export type GoalNode = {
   abandon_count: number;
 };
 
+export type NewNode = Pick<
+  GoalNode,
+  | "slug"
+  | "goal_id"
+  | "parent_id"
+  | "title"
+  | "description"
+  | "done_criteria"
+  | "optional"
+  | "score"
+  | "est_minutes"
+  | "focus"
+  | "tags"
+>;
+
 export type NodeChanges = Partial<
   Pick<
     GoalNode,
@@ -108,6 +123,10 @@ export function getGoalTree(goalId: string): Promise<GoalTree> {
 
 export function listNodes(): Promise<GoalNode[]> {
   return request("/nodes");
+}
+
+export function createNode(node: NewNode): Promise<GoalNode> {
+  return request("/nodes", "POST", node);
 }
 
 export function updateNode(nodeId: string, changes: NodeChanges): Promise<GoalNode> {

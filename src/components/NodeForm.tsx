@@ -17,7 +17,9 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
-import { GoalNode, NodeChanges } from "@/lib/api";
+import { GoalNode, NewNode } from "@/lib/api";
+
+export type NodeFormValues = Omit<NewNode, "goal_id">;
 
 // Radix's Select doesn't allow an empty value, so this stands for "no parent".
 const NO_PARENT = "none";
@@ -32,49 +34,63 @@ const FOCUS_LEVELS = [
 const FOCUS_SEGMENT_CLASSES =
   "flex-1 rounded-md text-muted-foreground hover:bg-background/60 data-[state=on]:bg-background data-[state=on]:font-medium data-[state=on]:text-(--level) data-[state=on]:shadow-sm data-[state=on]:ring-1 data-[state=on]:ring-(--level)/40 data-[state=on]:hover:bg-background data-[state=on]:hover:text-(--level)";
 
+function slugFromTitle(title: string): string {
+  return title
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "");
+}
+
+// With a node it edits that node; without one it collects the values for a new node.
 export function NodeForm({
   node,
+  parentIdForNewNode = null,
   treeNodes,
   isSaving,
   errorMessage,
-  onSave,
+  onSubmit,
   onCancel,
 }: {
-  node: GoalNode;
+  node?: GoalNode;
+  parentIdForNewNode?: string | null;
   treeNodes: GoalNode[];
   isSaving: boolean;
   errorMessage?: string;
-  onSave: (changes: NodeChanges) => void;
+  onSubmit: (values: NodeFormValues) => void;
   onCancel: () => void;
 }) {
-  const [title, setTitle] = useState(node.title);
-  const [description, setDescription] = useState(node.description);
-  const [doneCriteria, setDoneCriteria] = useState(node.done_criteria);
-  const [parentId, setParentId] = useState(node.parent_id ?? NO_PARENT);
-  const [optional, setOptional] = useState(node.optional);
-  const [score, setScore] = useState(String(node.score));
-  const [estMinutes, setEstMinutes] = useState(String(node.est_minutes));
-  const [focus, setFocus] = useState(node.focus);
-  const [tags, setTags] = useState(node.tags.join(", "));
+  const [title, setTitle] = useState(node?.title ?? "");
+  // Follows the title until the user types their own slug.
+  const [typedSlug, setTypedSlug] = useState<string | null>(null);
+  const [description, setDescription] = useState(node?.description ?? "");
+  const [doneCriteria, setDoneCriteria] = useState(node?.done_criteria ?? "");
+  const [parentId, setParentId] = useState(
+    (node ? node.parent_id : parentIdForNewNode) ?? NO_PARENT,
+  );
+  const [optional, setOptional] = useState(node?.optional ?? false);
+  const [score, setScore] = useState(String(node?.score ?? 1));
+  const [estMinutes, setEstMinutes] = useState(String(node?.est_minutes ?? 30));
+  const [focus, setFocus] = useState<GoalNode["focus"]>(node?.focus ?? "medium");
+  const [tags, setTags] = useState(node?.tags.join(", ") ?? "");
 
-  function saveChangedFields() {
-    const newParentId = parentId === NO_PARENT ? null : parentId;
-    const newTags = tags
-      .split(",")
-      .map((tag) => tag.trim())
-      .filter((tag) => tag !== "");
+  const slug = node?.slug ?? typedSlug ?? slugFromTitle(title);
 
-    const changes: NodeChanges = {};
-    if (title !== node.title) changes.title = title;
-    if (description !== node.description) changes.description = description;
-    if (doneCriteria !== node.done_criteria) changes.done_criteria = doneCriteria;
-    if (newParentId !== node.parent_id) changes.parent_id = newParentId;
-    if (optional !== node.optional) changes.optional = optional;
-    if (Number(score) !== node.score) changes.score = Number(score);
-    if (Number(estMinutes) !== node.est_minutes) changes.est_minutes = Number(estMinutes);
-    if (focus !== node.focus) changes.focus = focus;
-    if (newTags.join(",") !== node.tags.join(",")) changes.tags = newTags;
-    onSave(changes);
+  function submitValues() {
+    onSubmit({
+      slug,
+      title,
+      description,
+      done_criteria: doneCriteria,
+      parent_id: parentId === NO_PARENT ? null : parentId,
+      optional,
+      score: Number(score),
+      est_minutes: Number(estMinutes),
+      focus,
+      tags: tags
+        .split(",")
+        .map((tag) => tag.trim())
+        .filter((tag) => tag !== ""),
+    });
   }
 
   return (
@@ -82,7 +98,7 @@ export function NodeForm({
       className="space-y-4"
       onSubmit={(event) => {
         event.preventDefault();
-        saveChangedFields();
+        submitValues();
       }}
     >
       <FormField id="node-title" label="Title">
@@ -93,6 +109,17 @@ export function NodeForm({
           onChange={(event) => setTitle(event.target.value)}
         />
       </FormField>
+
+      {!node && (
+        <FormField id="node-slug" label="Slug (permanent once saved)">
+          <Input
+            id="node-slug"
+            required
+            value={slug}
+            onChange={(event) => setTypedSlug(event.target.value)}
+          />
+        </FormField>
+      )}
 
       <FormField id="node-description" label="Description">
         <Textarea
@@ -121,7 +148,7 @@ export function NodeForm({
           <SelectContent>
             <SelectItem value={NO_PARENT}>None (top level)</SelectItem>
             {treeNodes
-              .filter((treeNode) => treeNode.id !== node.id)
+              .filter((treeNode) => treeNode.id !== node?.id)
               .map((treeNode) => (
                 <SelectItem key={treeNode.id} value={treeNode.id}>
                   {treeNode.title}
